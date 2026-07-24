@@ -18,25 +18,17 @@ class _WeatherScreenState extends State<WeatherScreen> {
     final provider = context.watch<WeatherProvider>();
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text("Weather App"),
-      ),
+      appBar: AppBar(title: const Text("Weather App")),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF4A90E2),
-              Color(0xFF50C9C3),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+        decoration: BoxDecoration(
+          gradient: _getWeatherGradient(provider.weather?.description),
         ),
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Column(
+            child: ListView(
               children: [
                 /// 🔍 Search Field
                 TextField(
@@ -51,34 +43,29 @@ class _WeatherScreenState extends State<WeatherScreen> {
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.search),
                       onPressed: () {
-                        provider.featchWeather(_controller.text);
+                        provider.fetchWeather(_controller.text);
+                        FocusScope.of(context).unfocus();
                       },
                     ),
                   ),
                   onSubmitted: (value) {
-                    provider.featchWeather(value);
+                    provider.fetchWeather(value);
+                    FocusScope.of(context).unfocus();
                   },
                 ),
 
-                const SizedBox(height: 30),
+                const SizedBox(height: 40),
 
                 /// ✅ Animated Content
-                Expanded(
-                  child: Center(
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 500),
-                      transitionBuilder: (child, animation) {
-                        return FadeTransition(
-                          opacity: animation,
-                          child: ScaleTransition(
-                            scale: animation,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: _buildContent(provider),
-                    ),
-                  ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 500),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(scale: animation, child: child),
+                    );
+                  },
+                  child: _buildContent(provider),
                 ),
               ],
             ),
@@ -90,21 +77,20 @@ class _WeatherScreenState extends State<WeatherScreen> {
 
   Widget _buildContent(WeatherProvider provider) {
     if (provider.isLoading) {
-      return const CircularProgressIndicator(
+      return const Center(
         key: ValueKey("loading"),
-        color: Colors.white,
+        child: CircularProgressIndicator(color: Colors.white),
       );
     }
 
-    if (provider.errorrMessage != null) {
-      return Text(
-        provider.errorrMessage!,
+    if (provider.errorMessage != null) {
+      return Center(
         key: const ValueKey("error"),
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 18,
+        child: Text(
+          provider.errorMessage!,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+          textAlign: TextAlign.center,
         ),
-        textAlign: TextAlign.center,
       );
     }
 
@@ -115,13 +101,58 @@ class _WeatherScreenState extends State<WeatherScreen> {
       );
     }
 
-    return const Text(
-      "Search for a city to see the weather",
+    return const Center(
       key: ValueKey("empty"),
-      style: TextStyle(
-        color: Colors.white70,
-        fontSize: 18,
+      child: Text(
+        "Search for a city to see the weather",
+        style: TextStyle(color: Colors.white70, fontSize: 18),
+        textAlign: TextAlign.center,
       ),
+    );
+  }
+
+  /// 🎨 Dynamic Gradient حسب حالة الطقس
+  LinearGradient _getWeatherGradient(String? condition) {
+    if (condition == null) {
+      return const LinearGradient(
+        colors: [Color(0xFF4A90E2), Color(0xFF50C9C3)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+
+    final lower = condition.toLowerCase();
+
+    if (lower.contains("sunny") || lower.contains("clear")) {
+      return const LinearGradient(
+        colors: [Color(0xFFFFB75E), Color(0xFFED8F03)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (lower.contains("cloud")) {
+      return const LinearGradient(
+        colors: [Color(0xFF757F9A), Color(0xFFD7DDE8)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (lower.contains("rain")) {
+      return const LinearGradient(
+        colors: [Color(0xFF314755), Color(0xFF26A0DA)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    } else if (lower.contains("snow")) {
+      return const LinearGradient(
+        colors: [Color(0xFFE6DADA), Color(0xFF274046)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      );
+    }
+
+    return const LinearGradient(
+      colors: [Color(0xFF4A90E2), Color(0xFF50C9C3)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
     );
   }
 }

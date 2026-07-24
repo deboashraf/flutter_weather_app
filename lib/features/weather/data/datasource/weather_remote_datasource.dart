@@ -15,8 +15,7 @@ class WeatherRemoteDatasource {
           'q': cityName,
         },
       );
-
-      return WeatherModel.fromjson(Response.data);
+      return WeatherModel.fromJson(Response.data);
     } on DioException catch (e) {
       if (e.type == DioExceptionType.connectionTimeout) {
         throw Exception("Connection timeout");

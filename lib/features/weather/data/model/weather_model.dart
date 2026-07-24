@@ -17,7 +17,7 @@ class WeatherModel {
     required this.humidity,
   });
 
-  factory WeatherModel.fromjson(Map<String, dynamic> json) {
+  factory WeatherModel.fromJson(Map<String, dynamic> json) {
     return WeatherModel(
       cityName: json['location']['name'],
       country: json['location']['country'],
